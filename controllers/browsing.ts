@@ -2,7 +2,7 @@ import {Knex} from "knex";
 import {Request, Response} from "express";
 import {RestaurantApiObject} from "../apiObjects/api";
 
-export const handleGetRestaurants= (db: Knex) => (req: Request, res: Response) => {
+export const handleGetRestaurants = (db: Knex) => (req: Request, res: Response) => {
     let restaurantApiObjects: RestaurantApiObject[] = [];
 
     db.select('*').from('restaurants')
