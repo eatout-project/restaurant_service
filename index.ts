@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Request, Response} from 'express';
 import dotenv from 'dotenv';
 import bodyParser from 'body-parser';
 import cors from 'cors';
@@ -13,6 +13,7 @@ import {
     testDataRestaurants
 } from './testdata/testdata';
 import {AddressApiObject} from "./apiObjects/api";
+import {handleSetRestaurants} from "./controllers/restaurantAdministration";
 
 dotenv.config();
 const app = express();
@@ -139,6 +140,8 @@ app.get('/create-test-data', (req, res) => {
             res.status(400).json("Unable to add restaurant.")
         });
 })
+
+app.post("/createRestaurant", (req: Request, res: Response) => handleSetRestaurants(req, res, db));
 
 app.get("/browsingList",  handleGetRestaurants(db));
 

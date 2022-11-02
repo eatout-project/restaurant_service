@@ -1,10 +1,11 @@
 export interface RestaurantApiObject {
+    email: string;
     name: string;
     description: string;
+    address: AddressApiObject;
     image?: string;
-    restaurantId?: string;
+    restaurantId?: number;
     menu?: RestaurantMenuApiObject;
-    address?: AddressApiObject;
 }
 
 export interface RestaurantMenuApiObject {

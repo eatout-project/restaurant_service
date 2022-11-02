@@ -144,7 +144,3 @@ export interface testdatacategoryitem {
     description: string;
     price: number;
 }
-
-export interface Test {
-    menuId: number
-}
