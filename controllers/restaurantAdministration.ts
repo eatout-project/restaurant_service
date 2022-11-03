@@ -13,19 +13,19 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                     return res.status(400).json('Email already in use');
                 }
 
-                trx.insert({
+                return trx.insert({
                     email: restaurantRegistration.email,
                     restaurantName: restaurantRegistration.name,
                     description: restaurantRegistration.description})
                     .into('restaurants')
                     .then(affectedRows => {
-                        trx.select('id').from('restaurants')
+                        return trx.select('id').from('restaurants')
                             .where('email', restaurantRegistration.email)
                             .then(returnedId => {
                                 const id: number = returnedId[0].id;
                                 console.log(id);
                                 const address: AddressApiObject = restaurantRegistration.address;
-                                trx.insert({
+                                return trx.insert({
                                     restaurantId: id,
                                     streetName: address.streetName,
                                     houseNumber: address.houseNumber,
@@ -34,20 +34,19 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                     floor: address.floor ? address.floor : null
                                 }).into('restaurantAddresses')
                                     .then( affectedRows => {
-                                        trx.insert({restaurantId: id}).into('menus')
+                                        return trx.insert({restaurantId: id}).into('menus')
                                             .then(affectedRows => {
-                                                trx.commit;
-                                                console.log(restaurantRegistration);
-                                                return res.status(200).json(restaurantRegistration);
+                                                console.log('Yes1');
                                             })
                                             .catch(error => {
                                                 console.log(error);
-                                                trx.rollback();
                                                 return res.status(400).json('Unable to create account');
                                             })
                                     })
                             })
                     })
-            })
+            }).then(() => {
+            return res.status(200).json('Success');
+        })
     })
 }

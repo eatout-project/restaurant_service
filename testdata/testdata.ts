@@ -1,17 +1,21 @@
 export const testDataRestaurants = [
         {
+            email: "dsa",
             restaurantName: 'Mogensens',
             description: 'Sygt hyggeligt'
         },
         {
+            email: "dsaa",
             restaurantName: 'Valdemarsens',
             description: 'Lækker lækker'
         },
         {
+            email: "dssa",
             restaurantName: 'Bogenses',
             description: 'Den er fiiiiin'
         },
         {
+            email: "ssdsa",
             restaurantName: 'Den aalborgensiske',
             description: 'Ja det bare dæjli'
         },
