@@ -36,14 +36,6 @@ app.get('/', (req, res) => {
     res.status(200).json('Server is up and running');
 })
 
-app.get('/test', (req, res) => {
-    db.select('*').from('restaurantAddresses')
-        .where('restaurantId',4)
-        .then(addressData => {
-            return res.status(200).json(addressData);
-        })
-})
-
 app.get('/create-test-data', (req, res) => {
     const addressesFinal: AddressApiObject[] = [];
     const menusFinal: testdatamenu[] = [];
