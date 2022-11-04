@@ -36,7 +36,9 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                     .then( affectedRows => {
                                         return trx.insert({restaurantId: id}).into('menus')
                                             .then(affectedRows => {
+                                                trx.commit();
                                                 console.log('Yes1');
+                                                return res.status(200).json('Success');
                                             })
                                             .catch(error => {
                                                 console.log(error);
@@ -45,8 +47,6 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                     })
                             })
                     })
-            }).then(() => {
-            return res.status(200).json('Success');
-        })
+            })
     })
 }
