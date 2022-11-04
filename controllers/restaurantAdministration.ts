@@ -38,7 +38,7 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                                 return res.status(200).json('Success');
                                             })
                                             .catch(error => {
-                                                console.log(error);
+                                                trx.rollback();
                                                 return res.status(400).json('Unable to create account');
                                             })
                                     })
