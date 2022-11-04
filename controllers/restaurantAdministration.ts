@@ -3,7 +3,6 @@ import {Request, Response} from "express";
 import {AddressApiObject, RestaurantApiObject} from "../apiObjects/api";
 
 export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
-    console.log(req.body);
     const restaurantRegistration: RestaurantApiObject = req.body;
 
     db.transaction(trx => {
@@ -23,7 +22,6 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                             .where('email', restaurantRegistration.email)
                             .then(returnedId => {
                                 const id: number = returnedId[0].id;
-                                console.log(id);
                                 const address: AddressApiObject = restaurantRegistration.address;
                                 return trx.insert({
                                     restaurantId: id,
@@ -37,7 +35,6 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                         return trx.insert({restaurantId: id}).into('menus')
                                             .then(affectedRows => {
                                                 trx.commit();
-                                                console.log('Yes1');
                                                 return res.status(200).json('Success');
                                             })
                                             .catch(error => {

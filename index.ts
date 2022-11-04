@@ -40,7 +40,6 @@ app.get('/test', (req, res) => {
     db.select('*').from('restaurantAddresses')
         .where('restaurantId',4)
         .then(addressData => {
-            console.log('Yes2', addressData);
             return res.status(200).json(addressData);
         })
 })
