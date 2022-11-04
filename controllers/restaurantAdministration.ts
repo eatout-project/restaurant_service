@@ -12,18 +12,18 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                     return res.status(400).json('Email already in use');
                 }
 
-                return trx.insert({
+                trx.insert({
                     email: restaurantRegistration.email,
                     restaurantName: restaurantRegistration.name,
                     description: restaurantRegistration.description})
                     .into('restaurants')
                     .then(affectedRows => {
-                        return trx.select('id').from('restaurants')
+                        trx.select('id').from('restaurants')
                             .where('email', restaurantRegistration.email)
                             .then(returnedId => {
                                 const id: number = returnedId[0].id;
                                 const address: AddressApiObject = restaurantRegistration.address;
-                                return trx.insert({
+                                trx.insert({
                                     restaurantId: id,
                                     streetName: address.streetName,
                                     houseNumber: address.houseNumber,
@@ -32,7 +32,7 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                     floor: address.floor ? address.floor : null
                                 }).into('restaurantAddresses')
                                     .then( affectedRows => {
-                                        return trx.insert({restaurantId: id}).into('menus')
+                                        trx.insert({restaurantId: id}).into('menus')
                                             .then(affectedRows => {
                                                 trx.commit();
                                                 return res.status(200).json('Success');
