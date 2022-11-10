@@ -1,6 +1,11 @@
 import {Knex} from "knex";
 import {Request, Response} from "express";
-import {AddressApiObject, RestaurantApiObject} from "../apiObjects/api";
+import {
+    AddressApiObject,
+    AddressResponseApiObject, LoginApiObject,
+    RestaurantApiObject,
+    RestaurantMenuApiObject, RestaurantResponseApiObject
+} from "../apiObjects/api";
 
 export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
     const restaurantRegistration: RestaurantApiObject = req.body;
@@ -14,7 +19,7 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
 
                 trx.insert({
                     email: restaurantRegistration.email,
-                    restaurantName: restaurantRegistration.name,
+                    restaurantName: restaurantRegistration.restaurantName,
                     description: restaurantRegistration.description})
                     .into('restaurants')
                     .then(affectedRows => {
@@ -46,4 +51,39 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                     })
             })
     })
+}
+
+export const getRestaurant = (req: Request, res: Response, db: Knex) => {
+    const {email} = req.body;
+
+    db.select('*').from('restaurants').where('email', email)
+        .then(loginData => {
+            const loginDataObject: LoginApiObject = loginData[0];
+            const {id, email, description, restaurantName} = loginDataObject;
+
+            db.select('*').from('restaurantAddresses').where('restaurantId', id)
+                .then(addressData => {
+                    const restaurantAddress: AddressResponseApiObject = addressData[0];
+
+                    db.select('*').from('menus').where('restaurantId', id)
+                        .then(menuData => {
+                            const restaurantMenu: RestaurantMenuApiObject = menuData[0]
+                            const restaurantObject: RestaurantResponseApiObject = {
+                                id,
+                                email,
+                                restaurantName,
+                                description,
+                                restaurantAddress,
+                                restaurantMenu
+                            }
+                            return res.status(200).json(restaurantObject);
+                        })
+                        .catch(error => {
+                            return res.json(400).json('Unable to get restaurant data');
+                        })
+                })
+        })
+        .catch(error => {
+            return res.status(400).json('Unable to get restaurant');
+        })
 }

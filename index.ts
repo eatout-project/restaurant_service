@@ -13,7 +13,7 @@ import {
     testDataRestaurants
 } from './testdata/testdata';
 import {AddressApiObject} from "./apiObjects/api";
-import {handleSetRestaurants} from "./controllers/restaurantAdministration";
+import {getRestaurant, handleSetRestaurants} from "./controllers/restaurantAdministration";
 
 dotenv.config();
 const app = express();
@@ -145,6 +145,11 @@ app.post("/createRestaurant", (req: Request, res: Response) => handleSetRestaura
 
 app.get("/browsingList",  handleGetRestaurants(db));
 
+app.post("/getRestaurant", (req: Request, res: Response) => {
+    getRestaurant(req, res, db);
+
+});
+
 app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
