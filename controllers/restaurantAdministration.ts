@@ -2,9 +2,15 @@ import {Knex} from "knex";
 import {Request, Response} from "express";
 import {
     AddressApiObject,
-    AddressResponseApiObject, LoginApiObject,
+    CategoryDAO,
+    CategoryRequestApiObject,
+    LoginApiObject,
     RestaurantApiObject,
-    RestaurantMenuApiObject, RestaurantResponseApiObject
+    RestaurantLoginResponseApiObject,
+    RestaurantMenuApiObject,
+    RestaurantMenuCategoryApiObject,
+    RestaurantMenuCategoryItemApiObject,
+    RestaurantRegistrationResponseApiObject
 } from "../apiObjects/api";
 
 export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
@@ -13,14 +19,15 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
     db.transaction(trx => {
         trx.select('email').from('restaurants').where('email', restaurantRegistration.email)
             .then(email => {
-                if (email.length){
+                if (email.length) {
                     return res.status(400).json('Email already in use');
                 }
 
                 trx.insert({
                     email: restaurantRegistration.email,
                     restaurantName: restaurantRegistration.restaurantName,
-                    description: restaurantRegistration.description})
+                    description: restaurantRegistration.description
+                })
                     .into('restaurants')
                     .then(affectedRows => {
                         trx.select('id').from('restaurants')
@@ -36,11 +43,22 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                     city: address.city,
                                     floor: address.floor ? address.floor : null
                                 }).into('restaurantAddresses')
-                                    .then( affectedRows => {
+                                    .then(affectedRows => {
                                         trx.insert({restaurantId: id}).into('menus')
                                             .then(affectedRows => {
-                                                trx.commit();
-                                                return res.status(200).json('Success');
+                                                trx.select('id').from('menus').where('restaurantId', id)
+                                                    .then(returnedMenuId => {
+                                                        const menuId: number = returnedMenuId[0].id;
+                                                        trx.commit();
+                                                        const responseObject: RestaurantRegistrationResponseApiObject = {
+                                                            id,
+                                                            email: restaurantRegistration.email,
+                                                            restaurantName: restaurantRegistration.restaurantName,
+                                                            description: restaurantRegistration.description,
+                                                            menuId
+                                                        }
+                                                        return res.status(200).json(responseObject);
+                                                    })
                                             })
                                             .catch(error => {
                                                 trx.rollback();
@@ -61,29 +79,78 @@ export const getRestaurant = (req: Request, res: Response, db: Knex) => {
             const loginDataObject: LoginApiObject = loginData[0];
             const {id, email, description, restaurantName} = loginDataObject;
 
-            db.select('*').from('restaurantAddresses').where('restaurantId', id)
-                .then(addressData => {
-                    const restaurantAddress: AddressResponseApiObject = addressData[0];
+            db.select('*').from('menus').where('restaurantId', id)
+                .then(menuData => {
+                    const restaurantMenu: RestaurantMenuApiObject = menuData[0]
+                    const menuCategories: RestaurantMenuCategoryApiObject[] = [];
+                    const categoryItems: RestaurantMenuCategoryItemApiObject[] = [];
 
-                    db.select('*').from('menus').where('restaurantId', id)
-                        .then(menuData => {
-                            const restaurantMenu: RestaurantMenuApiObject = menuData[0]
-                            const restaurantObject: RestaurantResponseApiObject = {
+                    db.select('*').from('categories').where('menuId', restaurantMenu.id)
+                        .then(categoryData => {
+                            categoryData.forEach(category => {
+                                menuCategories.push(category)
+                            });
+
+                            menuCategories.forEach(function (category) {
+                                db.select('*').from('categoryItems').where('categoryId', category.id)
+                                    .then(itemData => {
+                                        itemData.forEach(item => categoryItems.push(item));
+                                    })
+                            })
+                        })
+                        .then(() => {
+                            const restaurantObject: RestaurantLoginResponseApiObject = {
                                 id,
                                 email,
                                 restaurantName,
                                 description,
-                                restaurantAddress,
-                                restaurantMenu
+                                restaurantMenu,
+                                menuCategories,
+                                categoryItems
                             }
                             return res.status(200).json(restaurantObject);
                         })
-                        .catch(error => {
-                            return res.json(400).json('Unable to get restaurant data');
-                        })
+
+                })
+                .catch(error => {
+                    return res.json(400).json('Unable to get restaurant data');
                 })
         })
+
         .catch(error => {
             return res.status(400).json('Unable to get restaurant');
         })
 }
+
+export const handleAddNewCategory = (req: Request, res: Response, db: Knex) => {
+    const newCategory: CategoryRequestApiObject = req.body;
+
+    db.transaction(trx => {
+        trx.select('*').from('categories').where('menuId', newCategory.menuId)
+            .then(categories => {
+                const categoryList: CategoryDAO[] = categories;
+                categoryList.forEach(function (category) {
+                    if (category.title == newCategory.categoryTitle) {
+                        return res.status(400).json('Category already exist!');
+                    }
+                });
+                trx.insert({menuId: newCategory.menuId, title: newCategory.categoryTitle}).into('categories')
+                    .then(() => {
+                        return trx.select('*').from('categories').where('menuId', newCategory.menuId)
+                            .then(updatedCategories => {
+                                const updatedCategoryList: CategoryDAO[] = updatedCategories;
+                                trx.commit();
+                                return res.status(200).json(updatedCategoryList);
+                            })
+
+                    })
+                    .catch(error => {
+                        trx.rollback();
+                        return res.status(400).json('Unable to add category');
+                    })
+            })
+            .catch(error => {
+            })
+    })
+}
+
