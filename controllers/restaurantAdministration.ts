@@ -3,7 +3,7 @@ import {Request, Response} from "express";
 import {
     AddressApiObject,
     CategoryDAO,
-    CategoryRequestApiObject,
+    CategoryRequestApiObject, ItemDAO, ItemRequestApiObject,
     LoginApiObject,
     RestaurantApiObject,
     RestaurantLoginResponseApiObject,
@@ -142,7 +142,6 @@ export const handleAddNewCategory = (req: Request, res: Response, db: Knex) => {
                                 trx.commit();
                                 return res.status(200).json(updatedCategoryList);
                             })
-
                     })
                     .catch(error => {
                         trx.rollback();
@@ -150,6 +149,40 @@ export const handleAddNewCategory = (req: Request, res: Response, db: Knex) => {
                     })
             })
             .catch(error => {
+            })
+    })
+}
+
+export const handleAddNewItem = (req: Request, res: Response, db: Knex) => {
+    const newItem: ItemRequestApiObject = req.body;
+
+    db.transaction(trx => {
+        trx.select('*').from('categoryItems').where('categoryId', newItem.categoryId)
+            .then(items => {
+                const itemList: ItemDAO[] = items;
+                itemList.forEach(item => {
+                    if (item.name === newItem.name) {
+                        return res.status(400).json('Item already exist in this category!');
+                    }
+                });
+
+                trx.insert({
+                    categoryId: newItem.categoryId,
+                    name: newItem.name, description:
+                    newItem.description,
+                    price: newItem.price}).into('categoryItems')
+                    .then(() => {
+                        trx.select('*').from('categoryItems').where('categoryId', newItem.categoryId)
+                            .then(updatedItems => {
+                                const updatedItemList: ItemDAO[] = updatedItems;
+                                trx.commit();
+                                return res.status(200).json(updatedItemList);
+                            })
+                    })
+                    .catch(error => {
+                        trx.rollback();
+                        return res.status(400).json('Unable to add item');
+                    })
             })
     })
 }
