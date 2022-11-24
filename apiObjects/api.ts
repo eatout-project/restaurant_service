@@ -60,6 +60,21 @@ export interface RestaurantMenuCategoryItemApiObject {
     image: string;
 }
 
+export interface ItemRequestApiObject {
+    categoryId: number;
+    name: string;
+    description: string;
+    price: number;
+}
+
+export interface ItemDAO {
+    id: number;
+    categoryId: number;
+    name: string;
+    description: string;
+    price: number;
+}
+
 export interface AddressApiObject {
     restaurantId: number;
     streetName: string;
