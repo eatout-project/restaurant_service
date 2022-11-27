@@ -116,7 +116,6 @@ export const getRestaurant = (req: Request, res: Response, db: Knex) => {
                     return res.json(400).json('Unable to get restaurant data');
                 })
         })
-
         .catch(error => {
             return res.status(400).json('Unable to get restaurant');
         })
@@ -170,7 +169,8 @@ export const handleAddNewItem = (req: Request, res: Response, db: Knex) => {
                     categoryId: newItem.categoryId,
                     name: newItem.name, description:
                     newItem.description,
-                    price: newItem.price}).into('categoryItems')
+                    price: newItem.price
+                }).into('categoryItems')
                     .then(() => {
                         trx.select('*').from('categoryItems').where('categoryId', newItem.categoryId)
                             .then(updatedItems => {
@@ -187,3 +187,29 @@ export const handleAddNewItem = (req: Request, res: Response, db: Knex) => {
     })
 }
 
+
+export const handleGetMenu = (req: Request, res: Response, db: Knex) => {
+    const {id} = req.body;
+
+    db.select('id').from('menus').where('restaurantId', id)
+        .then(menuId => {
+            console.log('menuID: ', menuId[0]);
+            const menuCategories: RestaurantMenuCategoryApiObject[] = [];
+            db.select('*').from('categories').where('menuId', menuId[0].id)
+                .then(returnedCategories => {
+                    Promise.all(returnedCategories.map((category, index) => {
+                        return db.select('*').from('categoryItems').where('categoryId', category.id)
+                            .then(returnedItems => {
+                                category.items = returnedItems;
+                                menuCategories.push(category)
+                            })
+                    }))
+                        .then(() => {
+                            return res.status(200).json(menuCategories);
+                        })
+                })
+        })
+        .catch(error => {
+            return res.json(400).json('Unable to get menu data');
+        })
+}
