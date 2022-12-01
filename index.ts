@@ -108,32 +108,26 @@ app.get('/create-test-data', (req, res) => {
                                                                     })
                                                             })
                                                             .catch(error => {
-                                                                console.log('categories select: ', error);
                                                                 res.status(400).json("F.")
                                                             })
                                                     })
                                                     .catch(error => {
-                                                        console.log('categoru insertion: ', error);
                                                         res.status(400).json("E.")
                                                     })
                                             })
                                             .catch(error => {
-                                                console.log('menu selection: ', error);
                                                 res.status(400).json("D.")
                                             })
                                     })
                                     .catch(error => {
-                                        console.log('menu insertion: ', error);
                                         res.status(400).json("C.")
                                     })
                             })
                             .catch(error => {
-                                console.log('address insertion: ', error);
                                 res.status(400).json("B.");
                             })
                 })
                     .catch(error => {
-                        console.log('Unable to get restaurants: ', error);
                         res.status(400).json("A.");
                     })
             })
@@ -141,7 +135,6 @@ app.get('/create-test-data', (req, res) => {
             .catch(trx.rollback)
     })
         .catch(error => {
-            console.log(error);
             res.status(400).json("Unable to add restaurant.")
         });
 })
