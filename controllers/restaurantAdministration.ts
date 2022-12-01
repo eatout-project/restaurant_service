@@ -4,13 +4,13 @@ import {
     AddressApiObject,
     CategoryDAO,
     CategoryRequestApiObject, ItemDAO, ItemRequestApiObject,
-    LoginApiObject,
+    LoginApiObject, MenuDAO,
     RestaurantApiObject,
-    RestaurantLoginResponseApiObject,
-    RestaurantMenuApiObject,
-    RestaurantMenuCategoryApiObject,
-    RestaurantMenuCategoryItemApiObject,
-    RestaurantRegistrationResponseApiObject
+    LoginResponseApiObject,
+    MenuApiObject,
+    CategoryApiObject,
+    ItemApiObject,
+    RegistrationResponseApiObject
 } from "../apiObjects/api";
 
 export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
@@ -25,7 +25,7 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
 
                 trx.insert({
                     email: restaurantRegistration.email,
-                    restaurantName: restaurantRegistration.restaurantName,
+                    restaurantName: restaurantRegistration.name,
                     description: restaurantRegistration.description
                 })
                     .into('restaurants')
@@ -48,14 +48,18 @@ export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
                                             .then(affectedRows => {
                                                 trx.select('id').from('menus').where('restaurantId', id)
                                                     .then(returnedMenuId => {
-                                                        const menuId: number = returnedMenuId[0].id;
+                                                        const menu: MenuApiObject = {
+                                                            id: returnedMenuId[0].id,
+                                                            categories: undefined
+                                                        };
+
                                                         trx.commit();
-                                                        const responseObject: RestaurantRegistrationResponseApiObject = {
+                                                        const responseObject: LoginResponseApiObject = {
                                                             id,
                                                             email: restaurantRegistration.email,
-                                                            restaurantName: restaurantRegistration.restaurantName,
+                                                            name: restaurantRegistration.name,
                                                             description: restaurantRegistration.description,
-                                                            menuId
+                                                            menu
                                                         }
                                                         return res.status(200).json(responseObject);
                                                     })
@@ -77,40 +81,45 @@ export const getRestaurant = (req: Request, res: Response, db: Knex) => {
     db.select('*').from('restaurants').where('email', email)
         .then(loginData => {
             const loginDataObject: LoginApiObject = loginData[0];
-            const {id, email, description, restaurantName} = loginDataObject;
+            const {id, email, description, name} = loginDataObject;
 
             db.select('*').from('menus').where('restaurantId', id)
-                .then(menuData => {
-                    const restaurantMenu: RestaurantMenuApiObject = menuData[0]
-                    const menuCategories: RestaurantMenuCategoryApiObject[] = [];
-                    const categoryItems: RestaurantMenuCategoryItemApiObject[] = [];
+                .then((menuData: MenuDAO[]) => {
+                    const menu: MenuApiObject = {
+                        id: menuData[0].id,
+                        categories: []
+                    }
 
-                    db.select('*').from('categories').where('menuId', restaurantMenu.id)
-                        .then(categoryData => {
-                            categoryData.forEach(category => {
-                                menuCategories.push(category)
-                            });
+                    db.select('*').from('categories').where('menuId', menu.id)
+                        .then((categoryData: CategoryDAO[]) => {
+                            const menuCategories: CategoryApiObject[] = [];
 
-                            menuCategories.forEach(function (category) {
-                                db.select('*').from('categoryItems').where('categoryId', category.id)
-                                    .then(itemData => {
-                                        itemData.forEach(item => categoryItems.push(item));
-                                    })
-                            })
+                            Promise.all(categoryData.map((category: CategoryDAO) => {
+                                const finalCategory: CategoryApiObject = {
+                                    id: category.id,
+                                    title: category.title,
+                                    items: []
+                                };
+
+                                return db.select('*').from('categoryItems').where('categoryId', category.id)
+                                    .then((itemData: ItemDAO[]) => {
+                                        itemData.forEach((item: ItemDAO) => finalCategory.items.push(item));
+                                        menuCategories.push(finalCategory);
+                                    });
+                            }))
+                                .then(() => {
+                                    menu.categories = menuCategories;
+
+                                    const restaurantObject: LoginResponseApiObject = {
+                                        id,
+                                        email,
+                                        name: name,
+                                        description,
+                                        menu: menu
+                                    }
+                                    return res.status(200).json(restaurantObject);
+                                });
                         })
-                        .then(() => {
-                            const restaurantObject: RestaurantLoginResponseApiObject = {
-                                id,
-                                email,
-                                restaurantName,
-                                description,
-                                restaurantMenu,
-                                menuCategories,
-                                categoryItems
-                            }
-                            return res.status(200).json(restaurantObject);
-                        })
-
                 })
                 .catch(error => {
                     return res.json(400).json('Unable to get restaurant data');
@@ -129,15 +138,17 @@ export const handleAddNewCategory = (req: Request, res: Response, db: Knex) => {
             .then(categories => {
                 const categoryList: CategoryDAO[] = categories;
                 categoryList.forEach(function (category) {
-                    if (category.title == newCategory.categoryTitle) {
+                    if (category.title == newCategory.title) {
                         return res.status(400).json('Category already exist!');
                     }
                 });
-                trx.insert({menuId: newCategory.menuId, title: newCategory.categoryTitle}).into('categories')
+                trx.insert({menuId: newCategory.menuId, title: newCategory.title}).into('categories')
                     .then(() => {
                         return trx.select('*').from('categories').where('menuId', newCategory.menuId)
                             .then(updatedCategories => {
+                                console.log('hwj1', updatedCategories);
                                 const updatedCategoryList: CategoryDAO[] = updatedCategories;
+                                console.log('hej2', updatedCategoryList);
                                 trx.commit();
                                 return res.status(200).json(updatedCategoryList);
                             })
@@ -194,7 +205,7 @@ export const handleGetMenu = (req: Request, res: Response, db: Knex) => {
     db.select('id').from('menus').where('restaurantId', id)
         .then(menuId => {
             console.log('menuID: ', menuId[0]);
-            const menuCategories: RestaurantMenuCategoryApiObject[] = [];
+            const menuCategories: CategoryApiObject[] = [];
             db.select('*').from('categories').where('menuId', menuId[0].id)
                 .then(returnedCategories => {
                     Promise.all(returnedCategories.map((category, index) => {
