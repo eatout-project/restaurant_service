@@ -5,41 +5,43 @@ export interface RestaurantLogin {
 
 export interface RestaurantApiObject {
     email: string;
-    restaurantName: string;
+    name: string;
     description: string;
     address: AddressApiObject;
     image?: string;
     restaurantId?: number;
-    menu?: RestaurantMenuApiObject;
+    menu?: MenuApiObject;
 }
 
-export interface RestaurantLoginResponseApiObject {
+export interface LoginResponseApiObject {
     id: number;
     email: string;
-    restaurantName: string;
+    name: string;
     description: string;
-    restaurantMenu: RestaurantMenuApiObject;
-    menuCategories: RestaurantMenuCategoryApiObject[];
-    categoryItems: RestaurantMenuCategoryItemApiObject[];
+    menu: MenuApiObject;
 }
 
-export interface RestaurantRegistrationResponseApiObject {
+export interface RegistrationResponseApiObject {
     id: number;
     email: string;
-    restaurantName: string;
+    name: string;
     description: string;
     menuId: number;
 }
 
-export interface RestaurantMenuApiObject {
+export interface MenuApiObject {
     id: number;
-    categories?: RestaurantMenuCategoryApiObject[];
+    categories: CategoryApiObject[] | undefined;
 }
 
-export interface RestaurantMenuCategoryApiObject {
+export interface MenuDAO {
+    id: number;
+}
+
+export interface CategoryApiObject {
     id: number;
     title: string;
-    items: RestaurantMenuCategoryItemApiObject[]
+    items: ItemApiObject[]
 }
 
 export interface CategoryDAO {
@@ -50,14 +52,16 @@ export interface CategoryDAO {
 
 export interface CategoryRequestApiObject {
     menuId: number;
-    categoryTitle: string;
+    title: string;
 }
 
-export interface RestaurantMenuCategoryItemApiObject {
+export interface ItemApiObject {
+    id: number;
+    categoryId: number;
     name: string;
     description: string;
     price: number;
-    image: string;
+    image?: string;
 }
 
 export interface ItemRequestApiObject {
@@ -97,6 +101,6 @@ export interface AddressResponseApiObject {
 export interface LoginApiObject {
     id: number;
     email: string;
-    restaurantName: string;
+    name: string;
     description: string;
 }
