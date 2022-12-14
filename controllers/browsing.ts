@@ -8,7 +8,7 @@ export const handleGetRestaurants = (db: Knex) => (req: Request, res: Response) 
     db.select('*').from('restaurants')
         .then((restaurants) => {
             return Promise.all(restaurants.map((restaurant) => {
-                const restaurantTemp: RestaurantApiObject = {email: "", name: restaurant.restaurantName, description: restaurant.description,
+                const restaurantTemp: RestaurantApiObject = {id: restaurant.id, email: restaurant.email, name: restaurant.restaurantName, description: restaurant.description,
                     address: {
                     streetName: "", houseNumber: 0, zipCode: 0, city: "", restaurantId: 0
                     }};

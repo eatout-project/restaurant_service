@@ -2,15 +2,16 @@ import {Knex} from "knex";
 import {Request, Response} from "express";
 import {
     AddressApiObject,
+    CategoryApiObject,
     CategoryDAO,
-    CategoryRequestApiObject, ItemDAO, ItemRequestApiObject,
-    LoginApiObject, MenuDAO,
-    RestaurantApiObject,
+    CategoryRequestApiObject,
+    ItemDAO,
+    ItemRequestApiObject,
+    LoginApiObject,
     LoginResponseApiObject,
     MenuApiObject,
-    CategoryApiObject,
-    ItemApiObject,
-    RegistrationResponseApiObject
+    MenuDAO,
+    RestaurantApiObject
 } from "../apiObjects/api";
 
 export const handleSetRestaurants = (req: Request, res: Response, db: Knex) => {
@@ -146,9 +147,7 @@ export const handleAddNewCategory = (req: Request, res: Response, db: Knex) => {
                     .then(() => {
                         return trx.select('*').from('categories').where('menuId', newCategory.menuId)
                             .then(updatedCategories => {
-                                console.log('hwj1', updatedCategories);
                                 const updatedCategoryList: CategoryDAO[] = updatedCategories;
-                                console.log('hej2', updatedCategoryList);
                                 trx.commit();
                                 return res.status(200).json(updatedCategoryList);
                             })
@@ -204,7 +203,6 @@ export const handleGetMenu = (req: Request, res: Response, db: Knex) => {
 
     db.select('id').from('menus').where('restaurantId', id)
         .then(menuId => {
-            console.log('menuID: ', menuId[0]);
             const menuCategories: CategoryApiObject[] = [];
             db.select('*').from('categories').where('menuId', menuId[0].id)
                 .then(returnedCategories => {

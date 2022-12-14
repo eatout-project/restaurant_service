@@ -9,7 +9,7 @@ export interface RestaurantApiObject {
     description: string;
     address: AddressApiObject;
     image?: string;
-    restaurantId?: number;
+    id?: number;
     menu?: MenuApiObject;
 }
 
