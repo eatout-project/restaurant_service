@@ -1,8 +1,3 @@
-export interface RestaurantLogin {
-    email: string;
-    password: string;
-}
-
 export interface RestaurantApiObject {
     email: string;
     name: string;
@@ -19,14 +14,6 @@ export interface LoginResponseApiObject {
     name: string;
     description: string;
     menu: MenuApiObject;
-}
-
-export interface RegistrationResponseApiObject {
-    id: number;
-    email: string;
-    name: string;
-    description: string;
-    menuId: number;
 }
 
 export interface MenuApiObject {
@@ -80,16 +67,6 @@ export interface ItemDAO {
 }
 
 export interface AddressApiObject {
-    restaurantId: number;
-    streetName: string;
-    houseNumber: number;
-    zipCode: number;
-    city: string;
-    floor?: number;
-}
-
-export interface AddressResponseApiObject {
-    id: number;
     restaurantId: number;
     streetName: string;
     houseNumber: number;
