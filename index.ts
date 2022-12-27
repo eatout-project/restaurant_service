@@ -22,17 +22,29 @@ import {
 
 dotenv.config();
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 const db = knex({
     client: 'mysql2',
     connection: {
-        host: `${process.env.CUSTOMER_LOGIN_DB_HOST}`,
-        port: parseInt(`${process.env.CUSTOMER_LOGIN_DB_PORT}`),
-        user: `${process.env.CUSTOMER_LOGIN_DB_USER}`,
-        database: `${process.env.CUSTOMER_LOGIN_DB}`
+        host: process.env.RESTAURANT_DB_HOST ? `${process.env.RESTAURANT_DB_HOST}` : `127.0.0.1`,
+        port: process.env.RESTAURANT_DB_PORT ? parseInt(`${process.env.RESTAURANT_DB_PORT}`) : 3307,
+        user: process.env.RESTAURANT_DB_USER ? `${process.env.RESTAURANT_DB_USER}` : `root`,
+        database: process.env.RESTAURANT_DB ? `${process.env.RESTAURANT_DB}` : `db`
     }
 });
+
+console.log(
+    {
+        connection: {
+            host: process.env.RESTAURANT_DB_HOST ? `${process.env.RESTAURANT_DB_HOST}` : `127.0.0.1`,
+            port: process.env.RESTAURANT_DB_PORT ? parseInt(`${process.env.RESTAURANT_DB_PORT}`) : 3307,
+            user: process.env.RESTAURANT_DB_USER ? `${process.env.RESTAURANT_DB_USER}` : `root`,
+            database: process.env.RESTAURANT_DB ? `${process.env.RESTAURANT_DB}` : `db`
+        }
+    }
+)
+
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -135,6 +147,7 @@ app.get('/create-test-data', (req, res) => {
             .catch(trx.rollback)
     })
         .catch(error => {
+            console.log(error);
             res.status(400).json("Unable to add restaurant.")
         });
 })
