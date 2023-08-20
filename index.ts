@@ -28,23 +28,11 @@ const db = knex({
     client: 'mysql2',
     connection: {
         host: process.env.RESTAURANT_DB_HOST ? `${process.env.RESTAURANT_DB_HOST}` : `127.0.0.1`,
-        port: process.env.RESTAURANT_DB_PORT ? parseInt(`${process.env.RESTAURANT_DB_PORT}`) : 3307,
+        port: process.env.RESTAURANT_DB_PORT ? parseInt(`${process.env.RESTAURANT_DB_PORT}`) : 3306,
         user: process.env.RESTAURANT_DB_USER ? `${process.env.RESTAURANT_DB_USER}` : `root`,
         database: process.env.RESTAURANT_DB ? `${process.env.RESTAURANT_DB}` : `db`
     }
 });
-
-console.log(
-    {
-        connection: {
-            host: process.env.RESTAURANT_DB_HOST ? `${process.env.RESTAURANT_DB_HOST}` : `127.0.0.1`,
-            port: process.env.RESTAURANT_DB_PORT ? parseInt(`${process.env.RESTAURANT_DB_PORT}`) : 3307,
-            user: process.env.RESTAURANT_DB_USER ? `${process.env.RESTAURANT_DB_USER}` : `root`,
-            database: process.env.RESTAURANT_DB ? `${process.env.RESTAURANT_DB}` : `db`
-        }
-    }
-)
-
 
 app.use(bodyParser.json());
 app.use(cors());
